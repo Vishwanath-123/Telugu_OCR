@@ -14,7 +14,7 @@ criterion = nn.CTCLoss(blank=0, zero_infinity=True).cuda() if torch.cuda.is_avai
 params = list(cnn.parameters()) + list(lstm.parameters())
 optimizer = torch.optim.Adam(params, lr=1e-4, weight_decay=1e-5)
 
-num_of_epochs = 150
+num_of_epochs = 1000
 
 Losses = []
 
