@@ -1,1 +1,0 @@
-# Telugu_OCR
