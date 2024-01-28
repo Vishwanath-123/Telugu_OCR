@@ -1,6 +1,6 @@
 from utils import *
-from lstm import LSTM_NET
-from cnn import EncoderCNN
+from lstm import *
+from cnn import *
 
 cnn = EncoderCNN().to(device)
 lstm = LSTM_NET().to(device)
@@ -9,10 +9,10 @@ cnn.train()
 lstm.train()
 
 # loss function and optimizer
-criterion = nn.CTCLoss(blank=0, zero_infinity=True).cuda() if torch.cuda.is_available() else nn.CTCLoss(blank=0, zero_infinity=True)
+criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch.cuda.is_available() else nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean')
 
 params = list(cnn.parameters()) + list(lstm.parameters())
-optimizer = torch.optim.Adam(params, lr=1e-4, weight_decay=1e-5)
+optimizer = torch.optim.Adam(params, lr=1e-2)
 
 num_of_epochs = 1000
 
@@ -21,8 +21,13 @@ Losses = []
 save_num = 1
 
 for epoch in range(1, num_of_epochs + 1):
+
+    if(epoch == 20):
+        optimizer = torch.optim.Adam(params, lr=1e-4)
+
     start_time = time.time()
     num_of_files = 5
+    Number_of_images = 100
     for file in range(1, num_of_files + 1):
         images = torch.load("/home/ocr/teluguOCR/Dataset/Full_Image_Tensors/Full_Image_Tensors" + str(file) + ".pt")
         labels = torch.load("/home/ocr/teluguOCR/Dataset/Full_Label_Tensors/Full_Label_Tensors" + str(file) + ".pt")
@@ -32,13 +37,15 @@ for epoch in range(1, num_of_epochs + 1):
         labels = labels.to(device)
         target_lengths = target_lengths.to(device)
 
+        images = 1 - images
+
         # cnn forward pass
         cnn_output = cnn(images).unsqueeze(1)
 
         # lstm forward pass
-        f_output = torch.zeros(100, Image_length, Text_embedding_size).to(device)
+        f_output = torch.zeros(Image_length, Number_of_images, Text_embedding_size).to(device)
         for k in range(Image_length):
-            f_output[:, k, :] = lstm(cnn_output[:, :, k, :], k == 0).squeeze(1) 
+            f_output[k, : , :] = lstm(cnn_output[:, :, k, :], k == 0).squeeze(1)
 
         # applying log_softmax
         f_output[:, :, :114] = F.log_softmax(f_output[:, :, :114], dim=2)
@@ -52,7 +59,7 @@ for epoch in range(1, num_of_epochs + 1):
         f_output[:, :, 324:366] = F.log_softmax(f_output[:, :, 324:366], dim=2)
 
         # Loss calculation
-        input_lengths = torch.full(size=(100,), fill_value=Image_length, dtype=torch.long).to(device)
+        input_lengths = torch.full(size=(Number_of_images,), fill_value=Image_length, dtype=torch.long).to(device)
 
         Loss = 0
         # for base
@@ -88,4 +95,12 @@ for epoch in range(1, num_of_epochs + 1):
         torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/Model" + str(save_num) + ".pt")
         torch.save(lstm.state_dict(), "/home/ocr/teluguOCR/Models/Model" + str(save_num) + ".pt")
         save_num += 1
+
+
+# Plotting the losses
+import matplotlib.pyplot as plt
+plt.plot(Losses)
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.savefig("/home/ocr/teluguOCR/Losses.png")
         
