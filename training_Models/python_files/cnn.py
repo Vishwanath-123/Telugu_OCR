@@ -6,17 +6,24 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
 
         self.conv_seq = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.Dropout2d(drop_prob),
-            nn.MaxPool2d(kernel_size=(2, 4), stride=(2, 4), padding=0),
-            # nn.BatchNorm2d(64),
-            # nn.LeakyReLU(negative_slope=2),
-            nn.Sigmoid(),
-
-            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.Conv2d(1, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Dropout2d(drop_prob),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0),
-            nn.BatchNorm2d(128),
+            nn.BatchNorm2d(16),
+            nn.SELU(),
+
+            nn.Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.Dropout2d(drop_prob),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0),
+            nn.BatchNorm2d(16),
+            nn.Tanh(),
+
+            nn.Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.Dropout2d(drop_prob),
+            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0),
+            nn.BatchNorm2d(32),
+            nn.SELU(),
+
 
             # # 64 x 15 x 198
             # nn.Conv2d(64, 64, kernel_size=(3, 5), stride=(1, 1), padding=(1, 0)), # 64 x 15 x 194
@@ -117,9 +124,9 @@ class EncoderCNN(nn.Module):
         )
 
         self.Linear_seq = nn.Sequential(
-            nn.Linear(128*7, 600),
-            nn.LeakyReLU(negative_slope=1.5),
-            nn.Linear(600, Image_embedding_size)
+            nn.Linear(32*5, 100),
+            nn.SELU(),
+            nn.Linear(100, Image_embedding_size),
         )
 
     def forward(self, x):
@@ -129,7 +136,6 @@ class EncoderCNN(nn.Module):
         return x
     
 # cnn = EncoderCNN()
-# input = torch.randn(20, 1, 30, 800)
+# input = torch.randn(20, 1, 40, 800)
 # output = cnn(input)
 # print(output.shape)
-

@@ -12,7 +12,11 @@ lstm.train()
 criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch.cuda.is_available() else nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean')
 
 params = list(cnn.parameters()) + list(lstm.parameters())
-optimizer = torch.optim.Adam(params, lr=1e-2)
+optimizer = torch.optim.Adam(params, lr=1e-3)
+
+clip = 10
+for p in params:
+    p.register_hook(lambda grad: torch.clamp(grad, -clip, clip) if grad is not None else None)
 
 num_of_epochs = 1000
 
@@ -22,12 +26,10 @@ save_num = 1
 
 for epoch in range(1, num_of_epochs + 1):
 
-    if(epoch == 20):
-        optimizer = torch.optim.Adam(params, lr=1e-4)
-
     start_time = time.time()
     num_of_files = 5
     Number_of_images = 100
+    epoch_loss = 0
     for file in range(1, num_of_files + 1):
         images = torch.load("/home/ocr/teluguOCR/Dataset/Full_Image_Tensors/Full_Image_Tensors" + str(file) + ".pt")
         labels = torch.load("/home/ocr/teluguOCR/Dataset/Full_Label_Tensors/Full_Label_Tensors" + str(file) + ".pt")
@@ -36,8 +38,6 @@ for epoch in range(1, num_of_epochs + 1):
         images = images.to(device)
         labels = labels.to(device)
         target_lengths = target_lengths.to(device)
-
-        images = 1 - images
 
         # cnn forward pass
         cnn_output = cnn(images).unsqueeze(1)
@@ -48,52 +48,54 @@ for epoch in range(1, num_of_epochs + 1):
             f_output[k, : , :] = lstm(cnn_output[:, :, k, :], k == 0).squeeze(1)
 
         # applying log_softmax
-        f_output[:, :, :114] = F.log_softmax(f_output[:, :, :114], dim=2)
-        f_output[:, :, 114:135] = F.log_softmax(f_output[:, :, 114:135], dim=2)
-        f_output[:, :, 135:156] = F.log_softmax(f_output[:, :, 135:156], dim=2)
-        f_output[:, :, 156:177] = F.log_softmax(f_output[:, :, 156:177], dim=2)
-        f_output[:, :, 177:198] = F.log_softmax(f_output[:, :, 177:198], dim=2)
-        f_output[:, :, 198:240] = F.log_softmax(f_output[:, :, 198:240], dim=2)
-        f_output[:, :, 240:282] = F.log_softmax(f_output[:, :, 240:282], dim=2)
-        f_output[:, :, 282:324] = F.log_softmax(f_output[:, :, 282:324], dim=2)
-        f_output[:, :, 324:366] = F.log_softmax(f_output[:, :, 324:366], dim=2)
+        f_output[:, :, 0:110] = F.log_softmax(f_output[:, :, 0:110], dim=2)
+        f_output[:, :, 110:131] = F.log_softmax(f_output[:, :, 110:131], dim=2)
+        f_output[:, :, 131:152] = F.log_softmax(f_output[:, :, 131:152], dim=2)
+        f_output[:, :, 152:173] = F.log_softmax(f_output[:, :, 152:173], dim=2)
+        f_output[:, :, 173:194] = F.log_softmax(f_output[:, :, 173:194], dim=2)
+        f_output[:, :, 194:232] = F.log_softmax(f_output[:, :, 194:232], dim=2)
+        f_output[:, :, 232:270] = F.log_softmax(f_output[:, :, 232:270], dim=2)
+        f_output[:, :, 270:308] = F.log_softmax(f_output[:, :, 270:308], dim=2)
+        f_output[:, :, 308:346] = F.log_softmax(f_output[:, :, 308:346], dim=2)
 
         # Loss calculation
         input_lengths = torch.full(size=(Number_of_images,), fill_value=Image_length, dtype=torch.long).to(device)
 
         Loss = 0
         # for base
-        Loss += criterion(f_output[:, :, :114], labels[:, :,0], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 0:110], labels[:, :,0], input_lengths, target_lengths)
         # for vm1
-        Loss += criterion(f_output[:, :, 114:135], labels[:, :,1], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :,110:131], labels[:, :,1], input_lengths, target_lengths)
         # for vm2
-        Loss += criterion(f_output[:, :, 135:156], labels[:, :,2], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 131:152], labels[:, :,2], input_lengths, target_lengths)
         # for vm3
-        Loss += criterion(f_output[:, :, 156:177], labels[:, :,3], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 152:173], labels[:, :,3], input_lengths, target_lengths)
         # for vm4
-        Loss += criterion(f_output[:, :, 177:198], labels[:, :,4], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 173:194], labels[:, :,4], input_lengths, target_lengths)
         # for cm1
-        Loss += criterion(f_output[:, :, 198:240], labels[:, :,5], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 194:232], labels[:, :,5], input_lengths, target_lengths)
         # for cm2
-        Loss += criterion(f_output[:, :, 240:282], labels[:, :,6], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 232:270], labels[:, :,6], input_lengths, target_lengths)
         # for cm3
-        Loss += criterion(f_output[:, :, 282:324], labels[:, :,7], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 270:308], labels[:, :,7], input_lengths, target_lengths)
         # for cm4
-        Loss += criterion(f_output[:, :, 324:366], labels[:, :,8], input_lengths, target_lengths)
+        Loss += criterion(f_output[:, :, 308:346], labels[:, :,8], input_lengths, target_lengths)
     
         # Backpropagation
         optimizer.zero_grad()
         Loss.backward()
         optimizer.step()
 
+        epoch_loss += Loss.item()
+
         print("file Number", file, end = '\r')
     
-    print("Epoch : ", epoch, " | Loss : ", Loss.item(), " | Time taken : ", time.time() - start_time)
-    Losses.append(Loss.item())
+    print("Epoch : ", epoch, " | Loss : ", epoch_loss, " | Time taken : ", time.time() - start_time)
+    Losses.append(epoch_loss)
 
     if epoch %100 == 0:
-        torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/Model" + str(save_num) + ".pt")
-        torch.save(lstm.state_dict(), "/home/ocr/teluguOCR/Models/Model" + str(save_num) + ".pt")
+        torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/CNN/Model" + str(save_num) + ".pth")
+        torch.save(lstm.state_dict(), "/home/ocr/teluguOCR/Models/RNN/Model" + str(save_num) + ".pth")
         save_num += 1
 
 
