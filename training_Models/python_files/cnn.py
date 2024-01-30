@@ -10,19 +10,19 @@ class EncoderCNN(nn.Module):
             nn.Dropout2d(drop_prob),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0),
             nn.BatchNorm2d(16),
-            nn.SELU(),
+            nn.ReLU(),
 
             nn.Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Dropout2d(drop_prob),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0),
             nn.BatchNorm2d(16),
-            nn.Tanh(),
+            nn.ReLU(),
 
             nn.Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.Dropout2d(drop_prob),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0),
             nn.BatchNorm2d(32),
-            nn.SELU(),
+            nn.ReLU(),
 
 
             # # 64 x 15 x 198
@@ -122,6 +122,12 @@ class EncoderCNN(nn.Module):
             # nn.Dropout2d(drop_prob),
             # nn.Sigmoid(),
         )
+
+        # initializing weights of conv layers with he_normal
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight.data)
+                nn.init.constant_(m.bias.data, 0)
 
         self.Linear_seq = nn.Sequential(
             nn.Linear(32*5, 100),
