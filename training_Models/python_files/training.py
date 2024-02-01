@@ -6,8 +6,8 @@ cnn = EncoderCNN().to(device)
 lstm = LSTM_NET().to(device)
 
 # # loading the model
-# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/Model30.pth"))
-# lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/Model30.pth"))
+# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/Model10.pth"))
+# lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/Model10.pth"))
 
 cnn.train()
 lstm.train()
@@ -16,13 +16,13 @@ lstm.train()
 criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch.cuda.is_available() else nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean')
 
 params = list(cnn.parameters()) + list(lstm.parameters())
-optimizer = torch.optim.Adam(params, lr=1e-3)
+optimizer = torch.optim.Adam(params, lr=1e-4)
 
 clip = 10
 for p in params:
     p.register_hook(lambda grad: torch.clamp(grad, -clip, clip) if grad is not None else None)
 
-num_of_epochs = 5000
+num_of_epochs = 1000
 
 Losses = []
 
@@ -31,7 +31,7 @@ save_num = 1
 for epoch in range(1, num_of_epochs + 1):
 
     start_time = time.time()
-    num_of_files = 100
+    num_of_files = 10
     Number_of_images = 100
     epoch_loss = 0
     for file in range(1, num_of_files + 1):

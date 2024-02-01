@@ -5,7 +5,7 @@ class LSTM_NET(nn.Module):
         super(LSTM_NET, self).__init__()
 
         # LSTM
-        self.lstm1 = nn.LSTM(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #512 to 512
+        self.lstm1 = nn.LSTM(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #100 to 364
         self.lstm2 = nn.LSTM(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #512 to 512
 
         # attention layer
@@ -18,11 +18,11 @@ class LSTM_NET(nn.Module):
             nn.Linear(LSTM_output_size*2, LSTM_output_size),
         )
 
-        # initialising the weights in Linear_seq2
-        for m in self.Linear_seq2.modules():
+        # initialising weights of linear layers with he_normal distribution
+        for m in self.modules():
             if isinstance(m, nn.Linear):
-                m.weight.data.normal_(10, 0.01)
-                m.bias.data.zero_()
+                nn.init.kaiming_normal_(m.weight.data)
+                nn.init.constant_(m.bias.data, 0)
 
     def initialise_hidden_states(self, batch_size):
         self.hidden1 = (torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device),
@@ -32,7 +32,6 @@ class LSTM_NET(nn.Module):
         
 
     def forward(self, x, Bool):
-
 
         if Bool:
             self.initialise_hidden_states(x.shape[0])
