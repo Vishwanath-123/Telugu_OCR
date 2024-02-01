@@ -16,7 +16,7 @@ lstm.train()
 criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch.cuda.is_available() else nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean')
 
 params = list(cnn.parameters()) + list(lstm.parameters())
-optimizer = torch.optim.Adam(params, lr=1e-4)
+optimizer = torch.optim.Adam(params, lr=1e-3)
 
 clip = 10
 for p in params:
@@ -31,7 +31,7 @@ save_num = 1
 for epoch in range(1, num_of_epochs + 1):
 
     start_time = time.time()
-    num_of_files = 10
+    num_of_files = 120
     Number_of_images = 100
     epoch_loss = 0
     for file in range(1, num_of_files + 1):
