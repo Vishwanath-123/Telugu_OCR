@@ -6,8 +6,8 @@ cnn = EncoderCNN().to(device)
 lstm = LSTM_NET().to(device)
 
 # loading the model
-# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/Model10.pth"))
-# lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/Model10.pth"))
+cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/Model2.pth"))
+lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/Model2.pth"))
 
 cnn.train()
 lstm.train()
@@ -28,7 +28,7 @@ Losses = []
 
 save_num = 1
 
-for epoch in range(1, num_of_epochs + 1):
+for epoch in range(201, num_of_epochs + 1):
 
     start_time = time.time()
     num_of_files = 24
