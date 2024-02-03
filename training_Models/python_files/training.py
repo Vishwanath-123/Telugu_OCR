@@ -5,7 +5,7 @@ from cnn import *
 cnn = EncoderCNN().to(device)
 lstm = LSTM_NET().to(device)
 
-# # loading the model
+# loading the model
 # cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/Model10.pth"))
 # lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/Model10.pth"))
 
@@ -22,7 +22,7 @@ clip = 10
 for p in params:
     p.register_hook(lambda grad: torch.clamp(grad, -clip, clip) if grad is not None else None)
 
-num_of_epochs = 1000
+num_of_epochs = 2000
 
 Losses = []
 
@@ -31,10 +31,10 @@ save_num = 1
 for epoch in range(1, num_of_epochs + 1):
 
     start_time = time.time()
-    num_of_files = 120
-    Number_of_images = 100
+    num_of_files = 24
+    Number_of_images = 500
     epoch_loss = 0
-    for file in range(1, num_of_files + 1):
+    for file in range(1, num_of_files+1):
         images = torch.load("/home/ocr/teluguOCR/Dataset/Full_Image_Tensors/Full_Image_Tensors" + str(file) + ".pt")
         labels = torch.load("/home/ocr/teluguOCR/Dataset/Full_Label_Tensors/Full_Label_Tensors" + str(file) + ".pt")
         target_lengths = torch.load("/home/ocr/teluguOCR/Dataset/Full_label_length_tensors/Full_Label_Lengths" + str(file) + ".pt")
@@ -108,5 +108,4 @@ import matplotlib.pyplot as plt
 plt.plot(Losses)
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig("/home/ocr/teluguOCR/Losses.png")
-        
+plt.savefig("/home/ocr/teluguOCR/Losses.png")      
