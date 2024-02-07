@@ -32,16 +32,16 @@ class EncoderCNN(nn.Module):
                 nn.init.constant_(m.bias.data, 0)
 
         self.Linear_seq = nn.Sequential(
-            nn.Linear(64*5, 256),
+            nn.Linear(64*5, 450),
             nn.ReLU(),
-            nn.Linear(256, Image_embedding_size),
+            nn.Linear(450, Image_embedding_size),
         )
 
         # initializing weights of linear layers with he_normal
-        for m in self.modules():
-            if isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(m.weight.data)
-                nn.init.constant_(m.bias.data, 0)
+        # for m in self.modules():
+        #     if isinstance(m, nn.Linear):
+        #         nn.init.kaiming_normal_(m.weight.data)
+        #         nn.init.constant_(m.bias.data, 0)
 
     def forward(self, x):
         x = self.conv_seq(x)

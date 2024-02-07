@@ -9,7 +9,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # out look of the model
 Number_of_images = 100
 Image_size = (40, 800)
-Image_embedding_size = 200
+Image_embedding_size = 150
 Image_length = 100
 Text_embedding_size = 346
 Max_Number_of_Words = 45

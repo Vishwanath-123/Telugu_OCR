@@ -5,8 +5,11 @@ class LSTM_NET(nn.Module):
         super(LSTM_NET, self).__init__()
 
         # LSTM
-        self.lstm1 = nn.LSTM(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #100 to 364
-        self.lstm2 = nn.LSTM(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #512 to 512
+        # self.lstm1 = nn.LSTM(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #100 to 364
+        # self.lstm2 = nn.LSTM(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #512 to 512
+
+        self.gru1 = nn.GRU(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #100 to 364
+        self.gru2 = nn.GRU(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True) #512 to 512
 
         # attention layer
         self.attention_Q = nn.Linear(LSTM_output_size*2, LSTM_output_size*2)
@@ -25,10 +28,13 @@ class LSTM_NET(nn.Module):
                 nn.init.constant_(m.bias.data, 0)
 
     def initialise_hidden_states(self, batch_size):
-        self.hidden1 = (torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device),
-                        torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device))
-        self.hidden2 = (torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device),
-                        torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device))
+        # self.hidden1 = (torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device),
+        #                 torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device))
+        # self.hidden2 = (torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device),
+        #                 torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device))
+
+        self.hidden1 = torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device)
+        self.hidden2 = torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device)
         
 
     def forward(self, x, Bool):
@@ -36,9 +42,9 @@ class LSTM_NET(nn.Module):
         if Bool:
             self.initialise_hidden_states(x.shape[0])
 
-        l1, self.hidden1 = self.lstm1(x, self.hidden1)
+        l1, self.hidden1 = self.gru1(x, self.hidden1)
         l1 = nn.ReLU()(l1)
-        l2, self.hidden2 = self.lstm2(x, self.hidden2)
+        l2, self.hidden2 = self.gru2(x, self.hidden2)
         l2 = nn.Tanh()(l2)
 
         x = torch.cat((l1, l2), dim=2)
