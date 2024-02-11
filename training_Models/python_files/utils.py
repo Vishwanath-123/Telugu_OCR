@@ -16,13 +16,13 @@ Max_Number_of_Words = 45
 
 
 # LSTM parameters for the RNN
-LSTM_Input_size = Image_embedding_size #50
-LSTM_hidden_size = Text_embedding_size #346
+LSTM_Input_size = Image_embedding_size 
+LSTM_hidden_size = Text_embedding_size
 LSTM_num_layers = 2
-LSTM_output_size = LSTM_hidden_size #346
+LSTM_output_size = LSTM_hidden_size 
 
 # reverse Embedding parameters
-Reverse_Input_size = LSTM_output_size #374
-Reverse_output_size = Text_embedding_size #374
+Reverse_Input_size = LSTM_output_size 
+Reverse_output_size = Text_embedding_size 
 
-drop_prob = 0.3
+drop_prob = 0.2
