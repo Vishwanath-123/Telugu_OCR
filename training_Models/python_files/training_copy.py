@@ -3,6 +3,7 @@ from lstm import *
 from cnn import *
 from dataset import TeluguOCRDataset
 from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 
 cnn = EncoderCNN().to(device)
 lstm = LSTM_NET().to(device)
@@ -20,7 +21,7 @@ criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch
 params = list(cnn.parameters()) + list(lstm.parameters())
 optimizer = torch.optim.Adam(params, lr=1e-3, weight_decay=1e-6)
 
-num_of_epochs = 300
+num_of_epochs = 1
 
 Losses = []
 val_losses = []
@@ -175,9 +176,12 @@ for epoch in range(1, num_of_epochs + 1):
 
     del epoch_loss
 
+# saving the losses into a pt file
+torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Losses.pt")
+torch.save(torch.tensor(val_loss), "/home/ocr/teluguOCR/Losses/Validation_Losses.pt")
 
 # Plotting the losses
-import matplotlib.pyplot as plt
+plt.figure(figsize=(12, 8))
 plt.plot(Losses, label = "Training Loss", color = 'blue')
 plt.plot(val_losses, label = "Validation Loss", color = 'red')
 plt.legend(
@@ -189,4 +193,4 @@ plt.legend(
 plt.title("Losses")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig("/home/ocr/teluguOCR/Losses.png")      
+plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Plot.png")      

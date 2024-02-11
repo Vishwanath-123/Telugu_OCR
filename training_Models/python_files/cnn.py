@@ -6,9 +6,8 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
 
         self.conv_seq = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+            nn.Conv2d(1, 16, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2)),
             nn.Dropout2d(drop_prob),
-            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2), padding=0),
             nn.BatchNorm2d(16),
             nn.SiLU(),
 
