@@ -31,11 +31,32 @@ names = ['Agni Suktam', 'agnisUktam', 'Advaita Shatakam', 'A no bhadrAH Suktam',
          'Shukla YajurvedIya SandhyA Morning-Noon-Evening', 'Samaveda Samhita Kauthuma ShAkha', 'Suryasukta from Rigveda',
          'SaubhagyalakShmi Upanishad', 'Svasti Suktam', 'hiraNyagarbhasUktam']
 
+# load the txt file and read the file line by line.
+def read_file_lines(filename):
+    lines = []
+    try:
+        with open(filename, 'r') as file:
+            for line in file:
+                lines.append(line.strip())  # Remove trailing newline characters
+    except FileNotFoundError:
+        print(f"File '{filename}' not found.")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
+    return lines
+
 dir = '/home/ocr/teluguOCR'
 text_file_paths = []
 for x in names:
   text_file_paths.append(dir + '/html_transcriptions/' + x + '.txt')#path to text file in "html_transcriptions" folder
-font_paths = [dir + '/fonts/Nirmala.ttf']
+font_paths =[dir + "/fonts/" + x for x in os.listdir("/home/ocr/teluguOCR/fonts/")]
+
+f_out = open("/home/ocr/teluguOCR/Dataset/labels.txt", 'w')
+for transcription in text_file_paths:
+    lines = read_file_lines(transcription)
+    for x in lines:
+        f_out.write(x + "\n")
+f_out.close()
 
 def get_text_dimensions(text_string, font):
     if font.getmask(text_string).getbbox() == None:
@@ -87,21 +108,8 @@ numbers = ['౦', '౧', '౨', '౩', '౪', '౫', '౬', '౭', '౮', '౯']
 
 varnmala = acchulu + hallulu + vallulu + connector + numbers + [' '] 
 
-# load the txt file and read the file line by line.
-def read_file_lines(filename):
-    lines = []
-    try:
-        with open(filename, 'r') as file:
-            for line in file:
-                lines.append(line.strip())  # Remove trailing newline characters
-    except FileNotFoundError:
-        print(f"File '{filename}' not found.")
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-
-    return lines
-
 def cleaning_the_text_2(string):
+    # remove leading and trailing spaces
     string = string.strip()
     for x in string:
         if x in varnmala:
@@ -113,23 +121,38 @@ def cleaning_the_text_2(string):
 lines = read_file_lines(dir + '/Dataset/labels.txt')
 f_str = open(dir + '/Dataset/strings.txt', 'w')
 
+number = 0
 for s in lines:
     s = cleaning_the_text_2(s)
     s = re.sub("\s\s+" , " ", s)
     if(s=='' or s == None or s == ' '):
         continue
+    number += 1
     f_str.write(s + '\n')
 f_str.close()
 
+print(number)
+print(len(lines))
+
+import cv2 as cv
+import random
+
 start = 0
 lines = read_file_lines(dir + '/Dataset/strings.txt')
-for ind_s in range(start, len(lines)):
-  s = lines[ind_s]
-  Img = draw_telugu_text(text = s, font_path = font_paths[0], font_size = 64)
-  m = Img.size[1]//40
-  Img = Img.resize((Img.size[0]//m, 40))
-  cv.imwrite(dir + '/Dataset/Images/Image' + str(ind_s+1) + '.png', np.array(Img))
-  del Img
-  del m
-  del s
-  print(ind_s, end = '\r')
+f_final = open("/home/ocr/teluguOCR/Dataset/final_strings.txt", 'w')
+
+indx = 1
+for s in lines:
+  # random choice of fonts
+  for font_path in random.sample(font_paths, 3):
+    Img = draw_telugu_text(text = s, font_path = font_path, font_size = 64)
+    m = Img.size[1]//40
+    if m == 0 or Img.size[0]//m == 0:
+      continue
+    Img = Img.resize((Img.size[0]//m, 40))
+    cv.imwrite(dir + '/Dataset/Images/Image' + str(indx) + '.png', np.array(Img))
+    f_final.write(s + '\n')
+    del Img
+    del m
+    indx+=1
+  print(indx, end = '\r')

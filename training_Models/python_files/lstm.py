@@ -10,15 +10,16 @@ class LSTM_NET(nn.Module):
 
         self.gru1 = nn.GRU(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True, dropout= drop_prob)
         self.gru2 = nn.GRU(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True, dropout= drop_prob)
+        self.gru3 = nn.GRU(input_size=LSTM_Input_size, hidden_size=int(LSTM_output_size/2), num_layers=LSTM_num_layers, bidirectional = True, batch_first=True, dropout= drop_prob)
 
         # attention layer
-        self.attention_Q = nn.Linear(LSTM_output_size*2, LSTM_output_size*2)
-        self.attention_K = nn.Linear(LSTM_output_size*2, LSTM_output_size*2)
-        self.attention_V = nn.Linear(LSTM_output_size*2, LSTM_output_size*2)
+        self.attention_Q = nn.Linear(LSTM_output_size*3, LSTM_output_size*3)
+        self.attention_K = nn.Linear(LSTM_output_size*3, LSTM_output_size*3)
+        self.attention_V = nn.Linear(LSTM_output_size*3, LSTM_output_size*3)
 
         # reverse embedder
         self.Linear_seq2 = nn.Sequential(
-            nn.Linear(LSTM_output_size*2 ,Text_embedding_size)
+            nn.Linear(LSTM_output_size*3 ,Text_embedding_size)
         )
 
         # initialising weights of linear layers with he_normal distribution
@@ -41,6 +42,7 @@ class LSTM_NET(nn.Module):
 
         self.hidden1 = torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device)
         self.hidden2 = torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device)
+        self.hidden3 = torch.zeros(2*LSTM_num_layers, batch_size, int(LSTM_hidden_size/2)).to(device)
         
 
     def forward(self, x, Bool):
@@ -52,8 +54,10 @@ class LSTM_NET(nn.Module):
         l1 = F.relu(l1)
         l2, self.hidden2 = self.gru2(x, self.hidden2)
         l2 = F.relu(l2)
+        l3, self.hidden3 = self.gru3(x, self.hidden2)
+        l3 = F.relu(l3)
 
-        x = torch.cat((l1, l2), dim=2)
+        x = torch.cat((l1, l2, l3), dim=2)
 
         # attention
         Q = self.attention_Q(x)

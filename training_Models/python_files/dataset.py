@@ -15,7 +15,7 @@ class TeluguOCRDataset(Dataset):
         label = torch.load(os.path.join(self.label_file_path, "Label"+str(index+1) + '.pt'))
 
         new_image = torch.zeros((1, 40, 800))
-        new_label = torch.zeros((32, 9))
+        new_label = torch.zeros((45, 9))
 
         new_image[0, :, :image.shape[1]] = image
         new_label[:label.shape[0], :] = label

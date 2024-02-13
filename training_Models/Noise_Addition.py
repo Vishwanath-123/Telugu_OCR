@@ -15,35 +15,12 @@ import matplotlib.image as mpimg
 
 dir = '/home/ocr/teluguOCR/Dataset/Images/'
 noisepath = '/home/ocr/teluguOCR/Dataset/Noised_Images'
-transcript = '/home/ocr/teluguOCR/Dataset/labels.txt'
 
 # Define the transformation to convert the images to tensors and perform any other necessary preprocessing
 transform = transforms.Compose([
     transforms.ToPILImage(),  # Ensure PIL
     transforms.ToTensor()  # Convert to a PyTorch tensor
 ])
-
-# load the txt file and read the file line by line.
-def read_file_lines(filename, startline, endline):
-    lines = []
-    try:
-        with open(filename, 'r') as file:
-            currentline = 1
-            while currentline < startline:
-              temp = file.readline()
-              currentline += 1
-            for line in file:
-                lines.append(line.strip())  # Remove trailing newline characters
-                currentline += 1
-                if currentline > endline:
-                  break
-        # print(currentline, endline)
-    except FileNotFoundError:
-        print(f"File '{filename}' not found.")
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-
-    return lines
 
 # Function to add Gaussian noise to an image
 def add_gaussian_noise(img):
@@ -80,8 +57,9 @@ def add_motion_blur(img):
   mb_image = cv2.filter2D(img, -1, kernel)
   return mb_image
 
+
 count = 0
-for i in range(1, 30001):
+for i in range(1, 189531+1):
     imagename = "Image" + str(i) + ".png"
     image = cv2.imread(os.path.join(dir, imagename), cv2.IMREAD_GRAYSCALE)
     image = np.array(image)
@@ -106,7 +84,6 @@ for i in range(1, 30001):
     if(image.shape[0] == 1):
         image = image[0]
 
-    print("i: ", i, " Max: ", torch.max(image), " | Min: ", torch.min(image), end = '\r')
 
     save_path = f'{noisepath}/' + "Image" + str(1000*count + i) + ".pt"
     torch.save(image,save_path)
@@ -115,3 +92,4 @@ for i in range(1, 30001):
     del save_path
     del imagename
     del noise_type
+    print(i, end = '\r')    
