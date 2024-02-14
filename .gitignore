@@ -5,3 +5,6 @@ Models
 Restored
 *.ipynb
 Losses
+*.png
+*.jpg
+*.jpeg

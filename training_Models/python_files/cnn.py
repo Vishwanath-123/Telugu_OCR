@@ -20,7 +20,6 @@ class EncoderCNN(nn.Module):
             nn.SiLU(),
         )
 
-        # way - 1
         self.conv_seq21 = nn.Sequential(
             nn.Conv2d(16, 64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2)),
             nn.Dropout2d(drop_prob),
@@ -28,7 +27,6 @@ class EncoderCNN(nn.Module):
             nn.SiLU(),
         )
         
-        # way - 2
         self.conv_seq22 = nn.Sequential(
             nn.Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
             nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
@@ -51,13 +49,6 @@ class EncoderCNN(nn.Module):
             nn.BatchNorm2d(128),
             nn.SiLU(),
         )
-
-        # self.conv_seq_one_layer = nn.Sequential(
-        #     nn.Conv2d(1, 128, kernel_size=(40, 25), stride=(1, 8), padding=(2, 10)),
-        #     nn.Dropout2d(drop_prob),
-        #     nn.BatchNorm2d(128),
-        #     nn.SiLU(),
-        # )
 
         # initializing weights of conv layers with he_normal
         for m in self.modules():

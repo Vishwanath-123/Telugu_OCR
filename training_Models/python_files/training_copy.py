@@ -9,8 +9,8 @@ cnn = EncoderCNN().to(device)
 lstm = LSTM_NET().to(device)
 
 # loading the model
-cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelGRU_56.pth"))
-lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelGRU_56.pth"))
+cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelGRU_116.pth"))
+lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelGRU_116.pth"))
 
 cnn.train()
 lstm.train()
@@ -26,7 +26,7 @@ num_of_epochs = 40
 Losses = []
 val_losses = []
 
-save_num = 37
+save_num = 117
 
 dataset = TeluguOCRDataset("/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Images", "/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Labels")
 train_dataset, val_dataset, test_data = torch.utils.data.random_split(dataset, [0.5, 0.3, 0.2])
@@ -35,7 +35,7 @@ train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=True)
 test_dataloader = DataLoader(test_data, batch_size=64, shuffle=True)
 
-for epoch in range(57, 56 + num_of_epochs + 1):
+for epoch in range(137, 136 + num_of_epochs + 1):
 
     cnn.train()
     lstm.train()
@@ -165,8 +165,8 @@ for epoch in range(57, 56 + num_of_epochs + 1):
         save_num += 1
 
 # saving the losses into a pt file
-torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Losses2.pt")
-torch.save(torch.tensor(val_loss), "/home/ocr/teluguOCR/Losses/Validation_Losses2.pt")
+torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Losses4.pt")
+torch.save(torch.tensor(val_loss), "/home/ocr/teluguOCR/Losses/Validation_Losses4.pt")
 
 # Plotting the losses
 plt.figure(figsize=(12, 8))
@@ -181,4 +181,4 @@ plt.legend(
 plt.title("Losses")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Plot2.png")      
+plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Plot4.png")      
