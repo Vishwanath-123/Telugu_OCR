@@ -1,13 +1,16 @@
 from utils import *
-from lstm import *
-from cnn import *
+from lstm import LSTM_NET
+from cnn import EncoderCNN
+from dataset import TeluguOCRDataset
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 
 cnn = EncoderCNN().to(device)
 lstm = LSTM_NET().to(device)
 
-# loading the model
-# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelGRU_20.pth"))
-# lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelGRU_20.pth"))
+# # loading the model
+# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelGRU_156.pth"))
+# lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelGRU_156.pth"))
 
 cnn.train()
 lstm.train()
@@ -18,15 +21,25 @@ criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch
 params = list(cnn.parameters()) + list(lstm.parameters())
 optimizer = torch.optim.Adam(params, lr=1e-3, weight_decay=1e-6)
 
-num_of_epochs = 300
+num_of_epochs = 200
 
 Losses = []
 val_losses = []
 
 save_num = 1
 
-# creating a random permutation 1 ti 39
-# perm = np.random.permutation(39) + 1
+dataset = TeluguOCRDataset("/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Images", "/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Labels")
+train_dataset, val_dataset= torch.utils.data.random_split(dataset, [0.7, 0.3])
+
+# Saving the seed for reproducibility
+torch.save(train_dataset.indices, "/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Split/Train_Indices.pt")
+torch.save(val_dataset.indices, "/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Split/Val_Indices.pt")
+
+torch.utils.data.Subset(train_dataset, torch.load("/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Split/Train_Indices.pt"))
+torch.utils.data.Subset(val_dataset, torch.load("/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Split/Val_Indices.pt"))
+
+train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=True)
 
 for epoch in range(1, num_of_epochs + 1):
 
@@ -34,21 +47,11 @@ for epoch in range(1, num_of_epochs + 1):
     lstm.train()
 
     start_time = time.time()
-    num_of_files_training = 30
-    Number_of_images = 50
-    num_of_parts = 10
     epoch_loss = 0
-
-    i = 0
-    # for file in perm[: num_of_files_training]:
-    for file in range(1, num_of_files_training + 1):
-        i += 1
-        for part in range(1, num_of_parts + 1):
-            print("file Number", i, " | Part Number", part, " ", end = '\r')
-            images = torch.load("/home/ocr/teluguOCR/Dataset/Full_Image_Tensors/Full_Image_Tensors" + str(file) + ".pt")[(part-1)*Number_of_images:part*Number_of_images]
-            labels = torch.load("/home/ocr/teluguOCR/Dataset/Full_Label_Tensors/Full_Label_Tensors" + str(file) + ".pt")[(part-1)*Number_of_images:part*Number_of_images]
-            target_lengths = torch.load("/home/ocr/teluguOCR/Dataset/Full_label_length_tensors/Full_Label_Lengths" + str(file) + ".pt")[(part-1)*Number_of_images:part*Number_of_images]
-
+    idx = 1
+    for images, labels, target_lengths in train_dataloader:
+            print(idx, end = "\r")
+            idx+=1
             images = images.to(device)
             labels = labels.to(device)
             target_lengths = target_lengths.to(device)
@@ -58,6 +61,7 @@ for epoch in range(1, num_of_epochs + 1):
 
             # lstm forward pass
             f_output = torch.zeros(Image_length, images.shape[0], Text_embedding_size).to(device)
+
             for k in range(Image_length):
                 f_output[k, : , :] = lstm(cnn_output[:, :, k, :], k == 0).squeeze(1)
 
@@ -100,26 +104,15 @@ for epoch in range(1, num_of_epochs + 1):
             Loss.backward()
             optimizer.step()
 
-        epoch_loss += Loss.item()
+            epoch_loss += Loss.item()
 
-        del images, labels, target_lengths, cnn_output, f_output, Loss, input_lengths, k
 
     # Calculating Validation loss 
     cnn.eval()
     lstm.eval()
     val_loss = 0
 
-    num_of_files_testing = 8
-
-    i = 0
-    # for file in perm[num_of_files_training: num_of_files_training + num_of_files_testing]:
-    for file in range(num_of_files_training + 1, num_of_files_training + num_of_files_testing + 1):
-        i += 1
-        for part in range(1, num_of_parts + 1):
-            print("file Number", i, " | Part Number", part, " ", end = '\r')
-            images = torch.load("/home/ocr/teluguOCR/Dataset/Full_Image_Tensors/Full_Image_Tensors" + str(file) + ".pt")[(part-1)*Number_of_images:part*Number_of_images]
-            labels = torch.load("/home/ocr/teluguOCR/Dataset/Full_Label_Tensors/Full_Label_Tensors" + str(file) + ".pt")[Number_of_images*(part-1):Number_of_images*part]
-            target_lengths = torch.load("/home/ocr/teluguOCR/Dataset/Full_label_length_tensors/Full_Label_Lengths" + str(file) + ".pt")[Number_of_images*(part-1):Number_of_images*part]
+    for images, labels, target_lengths in val_dataloader:
 
             images = images.to(device)
             labels = labels.to(device)
@@ -168,24 +161,21 @@ for epoch in range(1, num_of_epochs + 1):
             Loss += criterion(f_output[:, :, 308:346], labels[:, :,8], input_lengths, target_lengths)
 
             val_loss += Loss.item()
-            del images, labels, target_lengths, cnn_output, f_output, Loss, input_lengths, k
-
     
-    print("Epoch : ", epoch, " | Loss : ", epoch_loss/(num_of_files_training*num_of_parts), " | Validation Loss : ", val_loss/(num_of_files_testing*num_of_parts), " | Time : ", time.time() - start_time)
-
-    Losses.append(epoch_loss/(num_of_files_training*num_of_parts))
-    val_losses.append(val_loss/(num_of_files_testing*num_of_parts))
-
-    if epoch %10 == 0:
+    print("Epoch : ", epoch, " | Loss : ", (epoch_loss*64)/len(train_dataset), " | Validation Loss : ", (val_loss*64)/len(val_dataset), " | Time : ", time.time() - start_time)
+    Losses.append((epoch_loss*64)/len(train_dataset))
+    val_losses.append((val_loss*64)/len(val_dataset))
+    if epoch %1 == 0:
         torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/CNN/ModelGRU_" + str(save_num) + ".pth")
         torch.save(lstm.state_dict(), "/home/ocr/teluguOCR/Models/RNN/ModelGRU_" + str(save_num) + ".pth")
         save_num += 1
 
-    del epoch_loss
-
+# saving the losses into a pt file
+torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Losses_Final.pt")
+torch.save(torch.tensor(val_loss), "/home/ocr/teluguOCR/Losses/Validation_Losses_Final.pt")
 
 # Plotting the losses
-import matplotlib.pyplot as plt
+plt.figure(figsize=(12, 8))
 plt.plot(Losses, label = "Training Loss", color = 'blue')
 plt.plot(val_losses, label = "Validation Loss", color = 'red')
 plt.legend(
@@ -197,4 +187,4 @@ plt.legend(
 plt.title("Losses")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig("/home/ocr/teluguOCR/Losses.png")      
+plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Plot_Final.png")      
