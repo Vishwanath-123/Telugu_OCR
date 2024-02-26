@@ -6,7 +6,7 @@ class EncoderCNN(nn.Module):
         super(EncoderCNN, self).__init__()
 
         self.conv_seq11 = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2)),
+            nn.Conv2d(1, 16, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3)),
             nn.Dropout2d(drop_prob),
             nn.BatchNorm2d(16),
             nn.SiLU(),
@@ -21,7 +21,7 @@ class EncoderCNN(nn.Module):
         )
 
         self.conv_seq21 = nn.Sequential(
-            nn.Conv2d(16, 64, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2)),
+            nn.Conv2d(16, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3)),
             nn.Dropout2d(drop_prob),
             nn.BatchNorm2d(64),
             nn.SiLU(),
@@ -36,7 +36,7 @@ class EncoderCNN(nn.Module):
         )
 
         self.conv_seq31 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2)),
+            nn.Conv2d(64, 128, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3)),
             nn.Dropout2d(drop_prob),
             nn.BatchNorm2d(128),
             nn.SiLU(),

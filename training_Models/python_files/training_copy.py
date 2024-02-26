@@ -1,47 +1,55 @@
+
+
+
+
+
 from utils import *
-from lstm import DECODER
-from cnn import EncoderCNN
+from lstm import *
+from cnn import *
 from dataset import TeluguOCRDataset
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
 
 cnn = EncoderCNN().to(device)
-decoder = DECODER().to(device)
+lstm = LSTM_NET().to(device)
 
-# # loading the model
-# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelGRU_10.pth"))
-# decoder.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelGRU_10.pth"))
+# loading the model
+# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelGRU_20.pth"))
+# lstm.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelGRU_20.pth"))
 
 cnn.train()
-decoder.train()
+lstm.train()
 
 # loss function and optimizer
 criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch.cuda.is_available() else nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean')
 
-params = list(cnn.parameters()) + list(decoder.parameters())
+params = list(cnn.parameters()) + list(lstm.parameters())
 optimizer = torch.optim.Adam(params, lr=1e-3, weight_decay=1e-6)
 
-num_of_epochs = 100
+num_of_epochs = 300
 
 Losses = []
 val_losses = []
 
-save_num = 11
+save_num = 1
 
-dataset = TeluguOCRDataset("/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Images", "/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Labels")
+# creating a random permutation 1 ti 39
+# perm = np.random.permutation(39) + 1
 
-# splitting the dataset into training and validation
-torch.manual_seed(0)
-train_dataset, val_dataset= torch.utils.data.random_split(dataset, [0.6, 0.4])
+dataset = TeluguOCRDataset("/home/ocr/teluguOCR/Dataset/Cropped_Data/Images", "/home/ocr/teluguOCR/Dataset/Cropped_Data/Labels")
+train_dataset, val_dataset = torch.utils.data.random_split(dataset, [0.8, 0.2])
 
 train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=True)
 
 for epoch in range(1, num_of_epochs + 1):
+
     cnn.train()
-    decoder.train()
+    lstm.train()
 
     start_time = time.time()
+    num_of_files_training = 30
+    Number_of_images = 50
+    num_of_parts = 10
     epoch_loss = 0
     idx = 1
     for images, labels, target_lengths in train_dataloader:
@@ -54,13 +62,11 @@ for epoch in range(1, num_of_epochs + 1):
             # cnn forward pass
             cnn_output = cnn(images).unsqueeze(1)
 
-            # # decoder forward pass
-            # f_output = torch.zeros(Image_length, images.shape[0], Text_embedding_size).to(device)
+            # lstm forward pass
+            f_output = torch.zeros(Image_length, images.shape[0], Text_embedding_size).to(device)
 
-            # for k in range(Image_length):
-            #     f_output[k, : , :] = decoder(cnn_output[:, :, k, :], k == 0).squeeze(1)
-            f_output = decoder(cnn_output.squeeze(1), True).permute(1, 0, 2)
-
+            for k in range(Image_length):
+                f_output[k, : , :] = lstm(cnn_output[:, :, k, :], k == 0).squeeze(1)
 
             # applying log_softmax
             f_output[:, :, 0:110] = F.log_softmax(f_output[:, :, 0:110], dim=2)
@@ -106,8 +112,10 @@ for epoch in range(1, num_of_epochs + 1):
 
     # Calculating Validation loss 
     cnn.eval()
-    decoder.eval()
+    lstm.eval()
     val_loss = 0
+
+    num_of_files_testing = 8
 
     for images, labels, target_lengths in val_dataloader:
 
@@ -118,10 +126,10 @@ for epoch in range(1, num_of_epochs + 1):
             # cnn forward pass
             cnn_output = cnn(images).unsqueeze(1)
 
-            # decoder forward pass
+            # lstm forward pass
             f_output = torch.zeros(Image_length, images.shape[0], Text_embedding_size).to(device)
             for k in range(Image_length):
-                f_output[k, : , :] = decoder(cnn_output[:, :, k, :], k == 0).squeeze(1)
+                f_output[k, : , :] = lstm(cnn_output[:, :, k, :], k == 0).squeeze(1)
 
             # applying log_softmax
             f_output[:, :, 0:110] = F.log_softmax(f_output[:, :, 0:110], dim=2)
@@ -158,21 +166,23 @@ for epoch in range(1, num_of_epochs + 1):
             Loss += criterion(f_output[:, :, 308:346], labels[:, :,8], input_lengths, target_lengths)
 
             val_loss += Loss.item()
+
     
     print("Epoch : ", epoch, " | Loss : ", (epoch_loss*64)/len(train_dataset), " | Validation Loss : ", (val_loss*64)/len(val_dataset), " | Time : ", time.time() - start_time)
+
     Losses.append((epoch_loss*64)/len(train_dataset))
     val_losses.append((val_loss*64)/len(val_dataset))
-    if epoch %10 == 0:
-        torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/CNN/ModelTrans_" + str(save_num) + ".pth")
-        torch.save(decoder.state_dict(), "/home/ocr/teluguOCR/Models/RNN/ModelTrans_" + str(save_num) + ".pth")
+
+    if epoch %100 == 0:
+        torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/CNN/ModelGRU_" + str(save_num) + ".pth")
+        torch.save(lstm.state_dict(), "/home/ocr/teluguOCR/Models/RNN/ModelGRU_" + str(save_num) + ".pth")
         save_num += 1
 
-# saving the losses into a pt file
-torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Trans_Losses_Final_2.pt")
-torch.save(torch.tensor(val_losses), "/home/ocr/teluguOCR/Losses/Validation_Trans_Losses_Final_2.pt")
+    del epoch_loss
+
 
 # Plotting the losses
-plt.figure(figsize=(12, 8))
+import matplotlib.pyplot as plt
 plt.plot(Losses, label = "Training Loss", color = 'blue')
 plt.plot(val_losses, label = "Validation Loss", color = 'red')
 plt.legend(
@@ -184,4 +194,4 @@ plt.legend(
 plt.title("Losses")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Trans_Plot_Final_2.png")      
+plt.savefig("/home/ocr/teluguOCR/Losses.png")      
