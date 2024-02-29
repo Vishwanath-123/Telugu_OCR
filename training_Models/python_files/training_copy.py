@@ -4,7 +4,7 @@
 
 
 from utils import *
-from lstm import *
+from training_Models.python_files.Decoders import *
 from cnn import *
 from dataset import TeluguOCRDataset
 from torch.utils.data import DataLoader
