@@ -9,8 +9,8 @@ cnn = EncoderCNN().to(device)
 decoder = Decoder_Trans(Image_embedding_size, Text_embedding_size).to(device)
 
 # # loading the model
-# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelGRU_10.pth"))
-# decoder.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelGRU_10.pth"))
+# cnn.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/CNN/ModelTrans_20.pth"))
+# decoder.load_state_dict(torch.load("/home/ocr/teluguOCR/Models/RNN/ModelTrans_20.pth"))
 
 cnn.train()
 decoder.train()
@@ -20,7 +20,7 @@ torch.autograd.set_detect_anomaly(True)
 criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean') if torch.cuda.is_available() else nn.CTCLoss(blank=0, zero_infinity=True, reduction = 'mean')
 
 params = list(cnn.parameters()) + list(decoder.parameters())
-optimizer = torch.optim.Adam(params, lr=1e-3, weight_decay=1e-6)
+optimizer = torch.optim.Adam(params, lr=2e-3, weight_decay=1e-6)
 
 clip = 5.0
 torch.nn.utils.clip_grad_norm_(params, clip)
@@ -30,7 +30,7 @@ num_of_epochs = 100
 Losses = []
 val_losses = []
 
-save_num = 11
+save_num = 1
 
 dataset = TeluguOCRDataset("/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Images", "/home/ocr/teluguOCR/Dataset/Cropped_Dataset/Labels")
 
@@ -174,8 +174,8 @@ for epoch in range(1, num_of_epochs + 1):
         save_num += 1
 
 # saving the losses into a pt file
-torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Trans_Losses_Final_2.pt")
-torch.save(torch.tensor(val_losses), "/home/ocr/teluguOCR/Losses/Validation_Trans_Losses_Final_2.pt")
+torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Trans_Losses_Final_1.pt")
+torch.save(torch.tensor(val_losses), "/home/ocr/teluguOCR/Losses/Validation_Trans_Losses_Final_1.pt")
 
 # Plotting the losses
 plt.figure(figsize=(12, 8))
@@ -190,4 +190,4 @@ plt.legend(
 plt.title("Losses")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Trans_Plot_Final_2.png")      
+plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Trans_Plot_Final_1.png")      

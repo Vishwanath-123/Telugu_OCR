@@ -91,6 +91,17 @@ class Decoder_Trans(nn.Module):
         
         self.fc = nn.Linear(hidden_dim, output_dim)
 
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight.data)
+                nn.init.constant_(m.bias.data, 0)
+            if isinstance(m, nn.TransformerDecoderLayer):
+                for name, param in m.named_parameters():
+                    if 'weight' in name and param.dim() > 1:
+                        nn.init.xavier_normal_(param.data)
+                    else:
+                        nn.init.constant_(param.data, 0)
+
     def init_memory(self, x):
         self.memory = torch.zeros_like(x).to(device)        
 
