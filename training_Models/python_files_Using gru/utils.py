@@ -7,22 +7,30 @@ import time
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # out look of the model
+batch_size = 64
 Number_of_images = 100
 Image_size = (40, 800)
-Image_embedding_size = 150
+Image_embedding_size = 64
 Image_length = 100
-Text_embedding_size = 346
+Text_embedding_size = 228
 Max_Number_of_Words = 45
 
 
-# LSTM parameters for the RNN
-LSTM_Input_size = Image_embedding_size #150
-LSTM_hidden_size = Text_embedding_size #346
-LSTM_num_layers = 2
-LSTM_output_size = LSTM_hidden_size #346
+# Decoder parameters
+Layers = 2
+
+E_TO_D_Input_size = Image_embedding_size
+E_TO_D_output_size = 256
+
+D_Input_size = 256
+D_output_size = 256
+
+D_To_Output_Input_size = 256
+D_To_Output_output_size = Text_embedding_size
+
 
 # reverse Embedding parameters
-Reverse_Input_size = LSTM_output_size 
+Reverse_Input_size = Text_embedding_size
 Reverse_output_size = Text_embedding_size 
 
 drop_prob = 0.2

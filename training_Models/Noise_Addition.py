@@ -185,7 +185,7 @@ def index_decoder(List):
 # Noise type 0
 def add_gaussian_noise(img):
   img = transform(image)
-  gauss_img = torch.tensor(random_noise(img, mode='gaussian', mean=0, var=0.1, clip=True))
+  gauss_img = torch.tensor(random_noise(img, mode='gaussian', mean=0, var=0.02, clip=True))
   return gauss_img
 
 # Noise type 1
@@ -195,19 +195,19 @@ inkbleed = InkBleed(intensity_range=(0.2, 1),
                     )
 
 # Noise type 2
-doubleexposure = DoubleExposure(gaussian_kernel_range=(3,6),
+doubleexposure = DoubleExposure(gaussian_kernel_range=(2,3),
                                 offset_direction=1,
-                                offset_range=(2,6),
+                                offset_range=(2,4),
                                 )
 
 # Noise type 3
 hollow = Hollow(hollow_median_kernel_value_range = (51, 51),
                 hollow_min_width_range=(1, 1),
-                hollow_max_width_range=(20, 20),
+                hollow_max_width_range=(15, 15),
                 hollow_min_height_range=(1, 1),
-                hollow_max_height_range=(20, 20),
+                hollow_max_height_range=(15, 15),
                 hollow_min_area_range=(10, 10),
-                hollow_max_area_range=(500, 500),
+                hollow_max_area_range=(50, 50),
                 hollow_dilation_kernel_size_range = (3, 3),
                 )
 
@@ -223,8 +223,8 @@ letterpress = Letterpress(n_samples=(20, 500),
 # Noise type 5
 lighting_gradient_linear_static = LightingGradient(light_position=None,
                                               direction=45,
-                                              max_brightness=255,
-                                              min_brightness=0,
+                                              max_brightness=150,
+                                              min_brightness=50,
                                               mode="linear_static",
                                               linear_decay_rate = 0.5,
                                               transparency=0.5
@@ -232,9 +232,9 @@ lighting_gradient_linear_static = LightingGradient(light_position=None,
 
 # Noise type 6
 low_ink_periodic_line_consistent =  LowInkPeriodicLines(count_range=(1, 5),
-                                                        period_range=(1, 3),
-                                                        use_consistent_lines=True,
-                                                        noise_probability=0.1,
+                                                        period_range=(1, 4),
+                                                        use_consistent_lines=False,
+                                                        noise_probability=0.02,
                                                         )
 
 # Noise type 7
@@ -242,39 +242,39 @@ shadowcast = ShadowCast(shadow_side = "bottom",
                         shadow_vertices_range = (2, 3),
                         shadow_width_range=(0.5, 0.8),
                         shadow_height_range=(0.5, 0.8),
-                        shadow_color = (0, 0, 0),
+                        shadow_color = (10, 10, 10),
                         shadow_opacity_range=(0.5,0.6),
                         shadow_iterations_range = (1,2),
-                        shadow_blur_kernel_range = (51, 151),
+                        shadow_blur_kernel_range = (101, 301),
                         )
 
 # Noise type 8
-folding = Folding(fold_count=2,
+folding = Folding(fold_count=3,
                   fold_noise=0.0,
-                  fold_angle_range = (-180,180),
-                  gradient_width=(0.05, 0.07),
+                  fold_angle_range = (-360,360),
+                  gradient_width=(0.1, 0.5),
                   gradient_height=(0.01, 0.05),
-                  backdrop_color = (0,0,0),
+                  backdrop_color = (255,255,255),
                   )
 
 # Noise type 9
-book_binder_down = BookBinding(shadow_radius_range=(10, 10),
-                              curve_range_right=(10, 10),
-                              curve_range_left=(10, 10),
-                              curve_ratio_right = (0.05, 0.05),
-                              curve_ratio_left = (0.1, 0.1),
+book_binder_down = BookBinding(shadow_radius_range=(100, 100),
+                              curve_range_right=(1, 1),
+                              curve_range_left=(1, 1),
+                              curve_ratio_right = (1e-5, 1e-5),
+                              curve_ratio_left = (1e-5, 1e-5),
                               mirror_range=(0, 0),
-                              binding_align = 0.5,
-                              binding_pages = (10,10),
+                              binding_align = 2,
+                              binding_pages = (4,6),
                               curling_direction=0,
                               backdrop_color=(255, 255, 255),
-                              enable_shadow=0,
+                              enable_shadow=1,
                               use_cache_images = 0,
                               )
 
 # Noise type 10
 inkshifter_obj = InkShifter(
-    text_shift_scale_range=(5, 10),
+    text_shift_scale_range=(2, 7),
     text_shift_factor_range=(1, 4),
     text_fade_range=(0, 2),
     noise_type = "random",
@@ -341,6 +341,7 @@ for i in range(1, 189531+1):
         elif noise_type == 9:
             image = book_binder_down(image)
             image = transform(image)
+            image = image[:, :40, :]
         elif noise_type == 10:
             image = inkshifter_obj(image)
             image = transform(image)

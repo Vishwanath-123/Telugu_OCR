@@ -20,4 +20,4 @@ class TeluguOCRDataset(Dataset):
         new_image[0, :, :image.shape[1]] = image
         new_label[:label.shape[0], :] = label
 
-        return new_image, new_label, len(label)
+        return new_image, new_label, len(label), int(image.shape[1]/(9))

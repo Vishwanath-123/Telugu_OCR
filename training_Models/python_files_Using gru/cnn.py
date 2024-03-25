@@ -13,8 +13,7 @@ class EncoderCNN(nn.Module):
         )
 
         self.conv_seq12 = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
+            nn.Conv2d(1, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
             nn.Dropout2d(drop_prob),
             nn.BatchNorm2d(16),
             nn.SiLU(),
@@ -28,8 +27,7 @@ class EncoderCNN(nn.Module):
         )
         
         self.conv_seq22 = nn.Sequential(
-            nn.Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
+            nn.Conv2d(16, 64, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
             nn.Dropout2d(drop_prob),
             nn.BatchNorm2d(64),
             nn.SiLU(),
@@ -43,8 +41,7 @@ class EncoderCNN(nn.Module):
         )
         
         self.conv_seq32 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
-            nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)),
+            nn.Conv2d(64, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
             nn.Dropout2d(drop_prob),
             nn.BatchNorm2d(128),
             nn.SiLU(),
@@ -79,7 +76,19 @@ class EncoderCNN(nn.Module):
         x = self.Linear_seq(x)
         return x
     
-# cnn = EncoderCNN()
-# input = torch.randn(20, 1, 40, 800)
-# output = cnn(input)
-# print(output.shape)
+
+# Traosformer Encoder_Decoder model
+    
+class Encoder_Decoder(nn.Module):
+    def __init__(self) -> None:
+        super(Encoder_Decoder).__init__()
+        self.num_E = 4
+        self.num_D = 4
+
+        self.transformer = nn.Transformer(d_model=Image_embedding_size, nhead=8, num_encoder_layers=self.num_E, num_decoder_layers=self.num_D, dim_feedforward=512, dropout=0.1, activation='relu')
+
+        self.fc = nn.Sequential(
+            nn.Linear(Image_embedding_size, Text_embedding_size),
+            nn.ReLU(),
+            nn.Linear(Text_embedding_size, Text_embedding_size),
+        )
