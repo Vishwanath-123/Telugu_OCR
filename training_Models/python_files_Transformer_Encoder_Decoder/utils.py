@@ -12,7 +12,7 @@ Number_of_images = 100
 Image_size = (40, 800)
 Image_embedding_size = 50
 Image_length = 100
-Text_embedding_size = 228
+Text_embedding_size = 228 + 2
 Max_Number_of_Words = 45
 
 

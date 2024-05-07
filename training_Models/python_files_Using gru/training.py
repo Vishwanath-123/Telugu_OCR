@@ -1,5 +1,5 @@
 from utils import *
-from Decoders import DECODER_GRU
+from Decoders import DECODER_RNN
 from cnn import EncoderCNN
 from dataset import TeluguOCRDataset
 from torch.utils.data import DataLoader
@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from Epoch_Run import *
 
 cnn = EncoderCNN().to(device)
-decoder = DECODER_GRU().to(device)
+decoder = DECODER_RNN().to(device)
 
 # loss function and optimizer
 torch.autograd.set_detect_anomaly(True)
@@ -19,7 +19,7 @@ optimizer = torch.optim.Adam(params, lr=1e-3, weight_decay=1e-5)
 clip = 5
 torch.nn.utils.clip_grad_norm_(params, clip)
 
-num_of_epochs = 200
+num_of_epochs = 50
 
 Losses = []
 val_losses = []
@@ -36,7 +36,6 @@ train_dataloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=64, shuffle=True)
 
 for epoch in range(1, num_of_epochs + 1):
-
     start_time = time.time()
     # training
     epoch_loss = Epoch_Run(cnn, decoder, train_dataloader, optimizer, criterion, training = True)
@@ -47,13 +46,13 @@ for epoch in range(1, num_of_epochs + 1):
     Losses.append((epoch_loss*64)/len(train_dataset))
     val_losses.append((val_loss*64)/len(val_dataset))
     if epoch %10 == 0:
-        torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/CNN/ModelGRU_" + str(save_num) + ".pth")
-        torch.save(decoder.state_dict(), "/home/ocr/teluguOCR/Models/RNN/ModelGRU_" + str(save_num) + ".pth")
+        torch.save(cnn.state_dict(), "/home/ocr/teluguOCR/Models/Best_CNN/LSTM1/Model" + str(save_num) + ".pth")
+        torch.save(decoder.state_dict(), "/home/ocr/teluguOCR/Models/Best_RNN/LSTM1/Model" + str(save_num) + ".pth")
         save_num += 1
-
-# saving the losses into a pt file
-torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_Trans_Losses_Final.pt")
-torch.save(torch.tensor(val_losses), "/home/ocr/teluguOCR/Losses/Validation_Trans_Losses_Final.pt")
+        # saving the losses into a pt file
+        torch.save(torch.tensor(Losses), "/home/ocr/teluguOCR/Losses/Training_LSTM1.pt")
+        torch.save(torch.tensor(val_losses), "/home/ocr/teluguOCR/Losses/Validation_LSTM1.pt")
+        
 
 # Plotting the losses
 plt.figure(figsize=(12, 8))
@@ -68,4 +67,4 @@ plt.legend(
 plt.title("Losses")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig("/home/ocr/teluguOCR/Losses/Losses_Trans_Plot_Final.png")      
+plt.savefig("/home/ocr/teluguOCR/Losses/Losses_LSTM1.png")      

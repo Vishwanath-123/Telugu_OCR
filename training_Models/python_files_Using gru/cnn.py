@@ -56,7 +56,15 @@ class EncoderCNN(nn.Module):
         self.Linear_seq = nn.Sequential(
             nn.Linear(128*5, 320),
             nn.ReLU(),
-            nn.Linear(320, Image_embedding_size),
+            nn.Linear(320, 160),
+            nn.ReLU(),
+            nn.Linear(160, 80),
+            nn.ReLU(),
+            nn.Linear(80, 40),
+            nn.ReLU(),
+            nn.Linear(40, 20),
+            nn.ReLU(),
+            nn.Linear(20, Image_embedding_size)
         )
 
         #initializing weights of linear layers with Xavier normal
@@ -70,25 +78,14 @@ class EncoderCNN(nn.Module):
         x = self.conv_seq21(x) + self.conv_seq22(x)
         x = self.conv_seq31(x) + self.conv_seq32(x)
 
-        # x = self.conv_seq_one_layer(x)
-
         x = x.reshape(x.shape[0],x.shape[3], -1)
         x = self.Linear_seq(x)
         return x
     
-
-# Traosformer Encoder_Decoder model
-    
-class Encoder_Decoder(nn.Module):
-    def __init__(self) -> None:
-        super(Encoder_Decoder).__init__()
-        self.num_E = 4
-        self.num_D = 4
-
-        self.transformer = nn.Transformer(d_model=Image_embedding_size, nhead=8, num_encoder_layers=self.num_E, num_decoder_layers=self.num_D, dim_feedforward=512, dropout=0.1, activation='relu')
-
-        self.fc = nn.Sequential(
-            nn.Linear(Image_embedding_size, Text_embedding_size),
-            nn.ReLU(),
-            nn.Linear(Text_embedding_size, Text_embedding_size),
-        )
+# Img1 = torch.randn(64, 1, 40, 800).to(device)
+# Img2 = torch.randn(64, 1, 80, 1600).to(device)
+# model = EncoderCNN().to(device)
+# output1 = model(Img1)
+# output2 = model(Img2)
+# print(output1.shape)
+# print(output2.shape)

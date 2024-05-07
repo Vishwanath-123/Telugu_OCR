@@ -32,7 +32,7 @@ hallulu = ['క', 'ఖ', 'గ', 'ఘ', 'ఙ',
            'త', 'థ', 'ద', 'ధ', 'న',
            'ప', 'ఫ', 'బ', 'భ', 'మ',
            'య', 'ర', 'ల', 'వ', 'శ', 'ష', 'స', 'హ', 'ళ', 'క్ష', 'ఱ']
-vallulu = ['ా', 'ి', 'ీ', 'ు' , 'ూ', 'ృ', 'ౄ', 'ె', 'ే', 'ై', 'ొ', 'ో', 'ౌ', 'ం', 'ః', 'ఁ', 'ౕ', 'ౖ', 'ౢ' ]
+vallulu = ['ా', 'ి', 'ీ', 'ు' , 'ూ', 'ృ', 'ౄ', 'ె', 'ే', 'ై', 'ొ', 'ో', 'ౌ', 'ం', 'ః', 'ఁ', 'ౕ', 'ౖ', 'ౢ']
 connector = ['్']
 numbers = ['౦', '౧', '౨', '౩', '౪', '౫', '౬', '౭', '౮', '౯']
 splcharacters= [' ', '!', '"', '#', '$', '%', '&', "'", '(', ')',
@@ -349,6 +349,8 @@ for i in range(1, 189531+1):
             image = transform(image)
             pass
 
+    if i == 1:
+       plt.imshow(image,cmap = 'gray')
     # convert the image tensor to PIL format
     transform2 = transforms.ToPILImage()
     image = transform2(image)

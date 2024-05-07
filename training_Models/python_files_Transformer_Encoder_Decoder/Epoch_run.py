@@ -26,25 +26,30 @@ def EPOCH_RUN(cnn, Decoder, dataloader, optimizer, criterion, training = True):
         #CRNN + TRANSFORMER
         Encoder_output = cnn(images)
 
-        # # adding the starting token to the labels and making it RSLabels
-        # RSLabels = torch.zeros(labels.shape[0], labels.shape[1]+1, Text_embedding_size).to(device)
-        # RSLabels[:, 0, 1] = 1
-        # for i in range(labels.shape[0]):
-        #     for j in range(labels.shape[1]):
-        #         RSLabels[i, j+1, int(labels[i, j, 0])+2] = 1
+        # adding the starting token to the labels and making it RSLabels
+        RSLabels = torch.zeros(labels.shape[0], labels.shape[1]+1, Text_embedding_size).to(device)
+        RSLabels[:, 0, 1] = 1
+        for i in range(labels.shape[0]):
+            for j in range(labels.shape[1]):
+                RSLabels[i, j+1, int(labels[i, j, 0])+2] = 1 # shifting the bases by 2 for the starting and ending tokens
+                RSLabels[i, j+1, int(labels[i, j, 1])+112] = 1
+                RSLabels[i, j+1, int(labels[i, j, 2])+131] = 1
+                RSLabels[i, j+1, int(labels[i, j, 5])+152] = 1
+                RSLabels[i, j+1, int(labels[i, j, 6])+190] = 1
         
-        # # Adding the ending token to the labels for loss calculation
-        # LSLabels = torch.zeros(labels.shape[0], labels.shape[1]+1, 9).to(device)
-        # LSLabels[:, -1, 0] = 2
-        # for i in range(labels.shape[0]):
-        #     for j in range(labels.shape[1]):
-        #         LSLabels[i, j, 0] = labels[i, j, 0]
+        # Adding the ending token to the labels for loss calculation
+        LSLabels = torch.zeros(labels.shape[0], labels.shape[1]+1, 9).to(device)
+        LSLabels[:, -1, 0] = 2
+        for i in range(labels.shape[0]):
+            for j in range(labels.shape[1]):
+                LSLabels[i, j, 0] = labels[i, j, 0]+2 # shifting the bases by 2 for the starting and ending tokens
+                LSLabels[i, j, 1:] = labels[i, j, 1:]
         
 
 
-        # f_output = Decoder(Encoder_output, RSLabels).permute(1, 0, 2)
+        f_output = Decoder(Encoder_output, RSLabels).permute(1, 0, 2)
 
-        f_output = Decoder(Encoder_output).permute(1, 0, 2)
+        # f_output = Decoder(Encoder_output).permute(1, 0, 2)
 
         input_lengths = torch.full(size=(images.shape[0],), fill_value=45, dtype=torch.long).to(device)
 
